@@ -180,6 +180,13 @@ export async function transcribeOpenAICompat({
 }) {
   const base = provider === 'groq' ? 'https://api.groq.com/openai/v1' : 'https://api.openai.com/v1';
   const name = provider === 'groq' ? 'Groq' : 'OpenAI';
+  if (provider === 'groq' && !apiKey.startsWith('gsk_')) {
+    throw new Error(
+      apiKey.startsWith('xai-')
+        ? 'Esa clave es de Grok (xAI), no de Groq. Son empresas distintas.\n\nConsigue una clave gratis de Groq (empieza por «gsk_») en console.groq.com/keys.'
+        : 'Las claves de Groq empiezan por «gsk_». Consigue una gratis en console.groq.com/keys.',
+    );
+  }
   if (diarize && provider === 'openai') model = 'gpt-4o-transcribe-diarize';
 
   const isGpt = /^gpt-/.test(model);

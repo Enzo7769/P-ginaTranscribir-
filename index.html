@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Transcriptor de Audio</title>
+  <meta name="description" content="Transcribe audio y vídeo a texto con la máxima precisión: Whisper en tu navegador (privado y gratis) o motores en la nube como ElevenLabs Scribe, OpenAI y Groq.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎙️</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar__inner">
+      <div class="brand">
+        <span class="brand__logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 17v5"/></svg>
+        </span>
+        <div>
+          <h1 class="brand__title">Transcriptor</h1>
+          <p class="brand__sub">Audio y vídeo a texto, con la máxima precisión</p>
+        </div>
+      </div>
+      <button class="btn btn--ghost" id="themeToggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="wrap layout">
+    <!-- Columna izquierda: entrada y ajustes -->
+    <section class="col col--left">
+      <!-- 1. Audio -->
+      <div class="card">
+        <h2 class="card__title"><span class="step">1</span> Audio</h2>
+
+        <label class="dropzone" id="dropzone" for="fileInput">
+          <input type="file" id="fileInput" accept="audio/*,video/*,.mp3,.wav,.m4a,.ogg,.opus,.flac,.webm,.mp4,.mov,.mkv,.aac,.wma" hidden>
+          <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+          <span class="dropzone__main">Arrastra un archivo aquí o <u>elige uno</u></span>
+          <span class="dropzone__hint">MP3, WAV, M4A, OGG, FLAC, WEBM, MP4, MOV…</span>
+        </label>
+
+        <div class="or"><span>o</span></div>
+
+        <div class="recorder">
+          <button class="btn btn--record" id="recordBtn" type="button">
+            <span class="rec-dot" aria-hidden="true"></span>
+            <span id="recordLabel">Grabar con el micrófono</span>
+          </button>
+          <span class="recorder__time mono" id="recordTime" hidden>00:00</span>
+          <canvas class="recorder__meter" id="recordMeter" width="160" height="28" hidden></canvas>
+        </div>
+
+        <div class="fileinfo" id="fileInfo" hidden>
+          <div class="fileinfo__row">
+            <div class="fileinfo__name" id="fileName">—</div>
+            <button class="btn btn--icon" id="clearFile" type="button" title="Quitar audio" aria-label="Quitar audio">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+          <div class="fileinfo__meta" id="fileMeta">—</div>
+          <audio id="player" controls preload="metadata"></audio>
+        </div>
+      </div>
+
+      <!-- 2. Motor -->
+      <div class="card">
+        <h2 class="card__title"><span class="step">2</span> Motor de transcripción</h2>
+
+        <div class="engines" role="radiogroup" aria-label="Motor de transcripción">
+          <label class="engine">
+            <input type="radio" name="engine" value="elevenlabs">
+            <span class="engine__body">
+              <span class="engine__name">ElevenLabs Scribe <span class="badge badge--top">Máx. precisión</span></span>
+              <span class="engine__desc">Scribe v2 · hablantes, eventos de audio, términos clave. Necesita API key.</span>
+            </span>
+          </label>
+          <label class="engine">
+            <input type="radio" name="engine" value="openai">
+            <span class="engine__body">
+              <span class="engine__name">OpenAI <span class="badge">Muy alta</span></span>
+              <span class="engine__desc">gpt-4o-transcribe · con opción de hablantes. Necesita API key.</span>
+            </span>
+          </label>
+          <label class="engine">
+            <input type="radio" name="engine" value="groq">
+            <span class="engine__body">
+              <span class="engine__name">Groq <span class="badge">Rapidísimo</span></span>
+              <span class="engine__desc">Whisper large-v3 completo en la nube. API key con capa gratuita.</span>
+            </span>
+          </label>
+          <label class="engine">
+            <input type="radio" name="engine" value="local" checked>
+            <span class="engine__body">
+              <span class="engine__name">Local (en tu navegador) <span class="badge badge--ok">Gratis y privado</span></span>
+              <span class="engine__desc">Whisper large-v3-turbo. El audio nunca sale de tu equipo.</span>
+            </span>
+          </label>
+        </div>
+
+        <!-- Ajustes por motor -->
+        <div class="engine-settings" data-for="local">
+          <label class="field">
+            <span class="field__label">Modelo</span>
+            <select id="localModel">
+              <option value="onnx-community/whisper-large-v3-turbo">Whisper large-v3-turbo — máxima precisión (~0,8–1,6 GB)</option>
+              <option value="onnx-community/whisper-small">Whisper small — equilibrado (~250 MB)</option>
+              <option value="onnx-community/whisper-base">Whisper base — rápido (~80 MB)</option>
+            </select>
+          </label>
+          <p class="note" id="deviceNote">Comprobando aceleración por GPU…</p>
+          <p class="note">La primera vez se descarga el modelo; después queda en caché del navegador.</p>
+        </div>
+
+        <div class="engine-settings" data-for="openai" hidden>
+          <label class="field">
+            <span class="field__label">API key de OpenAI</span>
+            <input type="password" id="key-openai" placeholder="sk-…" autocomplete="off" spellcheck="false">
+          </label>
+          <label class="field">
+            <span class="field__label">Modelo</span>
+            <input id="openaiModel" list="openaiModels" value="gpt-4o-transcribe" spellcheck="false">
+            <datalist id="openaiModels">
+              <option value="gpt-4o-transcribe">Máxima precisión (solo texto)</option>
+              <option value="gpt-4o-transcribe-diarize">Con hablantes y marcas de tiempo</option>
+              <option value="gpt-4o-mini-transcribe">Más barato</option>
+              <option value="whisper-1">Whisper (marcas de tiempo por segmento)</option>
+            </datalist>
+          </label>
+          <p class="note">Consigue tu clave en <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com/api-keys</a>. Si activas «Identificar hablantes» se usa <code>gpt-4o-transcribe-diarize</code>.</p>
+        </div>
+
+        <div class="engine-settings" data-for="elevenlabs" hidden>
+          <label class="field">
+            <span class="field__label">API key de ElevenLabs</span>
+            <input type="password" id="key-elevenlabs" placeholder="sk_…" autocomplete="off" spellcheck="false">
+          </label>
+          <label class="field">
+            <span class="field__label">Modelo</span>
+            <input id="elevenModel" list="elevenModels" value="scribe_v2" spellcheck="false">
+            <datalist id="elevenModels">
+              <option value="scribe_v2">Scribe v2 (más preciso)</option>
+              <option value="scribe_v1">Scribe v1</option>
+            </datalist>
+          </label>
+          <label class="check">
+            <input type="checkbox" id="tagEvents">
+            <span>Marcar eventos de audio (risas, aplausos, música…)</span>
+          </label>
+          <p class="note">Consigue tu clave en <a href="https://elevenlabs.io/app/settings/api-keys" target="_blank" rel="noopener">elevenlabs.io › API keys</a> (necesita permiso de Speech to Text).</p>
+        </div>
+
+        <div class="engine-settings" data-for="groq" hidden>
+          <label class="field">
+            <span class="field__label">API key de Groq</span>
+            <input type="password" id="key-groq" placeholder="gsk_…" autocomplete="off" spellcheck="false">
+          </label>
+          <label class="field">
+            <span class="field__label">Modelo</span>
+            <input id="groqModel" list="groqModels" value="whisper-large-v3" spellcheck="false">
+            <datalist id="groqModels">
+              <option value="whisper-large-v3">Whisper large-v3 (más preciso)</option>
+              <option value="whisper-large-v3-turbo">Whisper large-v3-turbo (más rápido)</option>
+            </datalist>
+          </label>
+          <p class="note">Consigue tu clave gratis en <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a>.</p>
+        </div>
+
+        <label class="check" id="rememberWrap" hidden>
+          <input type="checkbox" id="rememberKey" checked>
+          <span>Recordar la API key en este navegador</span>
+        </label>
+      </div>
+
+      <!-- 3. Opciones -->
+      <div class="card">
+        <h2 class="card__title"><span class="step">3</span> Opciones</h2>
+        <label class="field">
+          <span class="field__label">Idioma del audio</span>
+          <select id="language"></select>
+          <span class="field__hint">Indicar el idioma mejora la precisión respecto a la detección automática.</span>
+        </label>
+
+        <label class="field" id="vocabWrap">
+          <span class="field__label">Vocabulario y contexto <span class="muted">(opcional)</span></span>
+          <textarea id="vocab" rows="3" placeholder="Nombres propios, siglas o términos técnicos separados por comas. Ej.: Iñaki Gabilondo, OCDE, ciberseguridad, Kubernetes"></textarea>
+          <span class="field__hint" id="vocabHint">Ayuda al modelo a escribir bien nombres y jerga.</span>
+        </label>
+
+        <label class="check" id="diarizeWrap">
+          <input type="checkbox" id="diarize">
+          <span>Identificar hablantes</span>
+        </label>
+      </div>
+
+      <button class="btn btn--primary btn--block" id="transcribeBtn" type="button" disabled>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h7"/></svg>
+        Transcribir
+      </button>
+
+      <div class="progress" id="progress" hidden>
+        <div class="progress__head">
+          <span id="progressLabel">Preparando…</span>
+          <span class="mono" id="progressPct"></span>
+        </div>
+        <div class="progress__bar"><div class="progress__fill" id="progressFill"></div></div>
+        <p class="progress__live" id="progressLive" hidden></p>
+        <button class="btn btn--ghost btn--sm" id="cancelBtn" type="button">Cancelar</button>
+      </div>
+
+      <div class="alert" id="errorBox" role="alert" hidden></div>
+    </section>
+
+    <!-- Columna derecha: resultado -->
+    <section class="col col--right">
+      <div class="card card--result">
+        <div class="result__head">
+          <div class="tabs" role="tablist">
+            <button class="tab is-active" role="tab" data-tab="text" type="button">Texto</button>
+            <button class="tab" role="tab" data-tab="segments" type="button">Segmentos</button>
+            <button class="tab" role="tab" data-tab="history" type="button">Historial</button>
+          </div>
+          <div class="result__actions">
+            <button class="btn btn--ghost btn--sm" id="copyBtn" type="button" disabled>
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copiar
+            </button>
+            <div class="menu">
+              <button class="btn btn--ghost btn--sm" id="downloadBtn" type="button" disabled aria-haspopup="true" aria-expanded="false">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+                Descargar
+              </button>
+              <div class="menu__list" id="downloadMenu" hidden>
+                <button type="button" data-fmt="txt">Texto (.txt)</button>
+                <button type="button" data-fmt="txt-ts">Texto con tiempos (.txt)</button>
+                <button type="button" data-fmt="srt">Subtítulos (.srt)</button>
+                <button type="button" data-fmt="vtt">Subtítulos web (.vtt)</button>
+                <button type="button" data-fmt="doc">Word (.doc)</button>
+                <button type="button" data-fmt="json">Datos completos (.json)</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats" id="stats" hidden></div>
+
+        <div class="panel" data-panel="text">
+          <div class="empty" id="emptyState">
+            <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+            <p>La transcripción aparecerá aquí.</p>
+            <p class="muted">Puedes editar el texto directamente antes de copiarlo o descargarlo.</p>
+          </div>
+          <textarea class="transcript" id="transcript" spellcheck="true" hidden aria-label="Transcripción"></textarea>
+        </div>
+
+        <div class="panel" data-panel="segments" hidden>
+          <p class="muted small" id="segmentsHint">Haz clic en un segmento para escucharlo desde ese punto.</p>
+          <ol class="segments" id="segments"></ol>
+        </div>
+
+        <div class="panel" data-panel="history" hidden>
+          <ul class="history" id="history"></ul>
+          <button class="btn btn--ghost btn--sm" id="clearHistory" type="button">Borrar historial</button>
+        </div>
+      </div>
+
+      <details class="card faq">
+        <summary>¿Qué motor es el más preciso?</summary>
+        <div class="faq__body">
+          <p><strong>ElevenLabs Scribe v2</strong> y <strong>OpenAI gpt-4o-transcribe</strong> son, hoy, de los modelos con menor tasa de error en español y en la mayoría de idiomas, sobre todo con ruido, acentos o varias personas hablando.</p>
+          <p><strong>Groq</strong> ejecuta Whisper large-v3 completo: muy preciso y extremadamente rápido, con capa gratuita.</p>
+          <p><strong>Local</strong> usa Whisper large-v3-turbo directamente en tu navegador: no envía nada a internet. Su precisión es muy cercana a large-v3. Funciona mejor en Chrome o Edge con GPU (WebGPU).</p>
+          <p><strong>Trucos para más precisión:</strong> elige el idioma en vez de «Automático», añade nombres y términos en «Vocabulario», y usa la mejor grabación posible (micrófono cerca, poco eco).</p>
+          <p class="muted">Tus API keys se guardan solo en este navegador y se envían directamente al proveedor elegido; esta página no tiene servidor propio.</p>
+        </div>
+      </details>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
